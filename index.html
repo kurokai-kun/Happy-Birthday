@@ -293,7 +293,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* --- SCREEN 6: MINIMAL CAKE & FIREWORKS --- */
+        /* --- SCREEN 6: MINIMAL CAKE & FLASHY FIREWORKS --- */
         #screen-cake {
             flex-direction: column;
             align-items: center;
@@ -301,12 +301,28 @@
             background-color: #f5cbd0;
             color: var(--dark-maroon);
             position: relative;
+            transition: background-color 0.8s ease;
+        }
+
+        /* Flashy Dark Theme change when candle is blown */
+        #screen-cake.celebrating {
+            background-color: #120305;
+            color: #fff3cc;
         }
 
         #screen-cake h2 {
             font-family: 'Georgia', serif;
             font-size: 2.2rem;
             margin-bottom: 60px;
+            z-index: 6;
+            text-shadow: 0 0 10px rgba(247, 161, 176, 0.3);
+            transition: all 0.5s;
+        }
+
+        #screen-cake.celebrating h2 {
+            font-size: 2.8rem;
+            color: #ffeb3b;
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
         }
 
         .cake-container {
@@ -316,6 +332,7 @@
             background: #fff;
             border-radius: 12px 12px 0 0;
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            z-index: 6;
         }
 
         .cake-layer {
@@ -352,10 +369,11 @@
             left: -3px;
             width: 14px;
             height: 20px;
-            background: #ffaa44;
+            background: radial-gradient(#ffeb3b, #ff5722);
             border-radius: 50% 50% 20% 20%;
             animation: blowFlicker 0.15s infinite alternate;
             cursor: pointer;
+            box-shadow: 0 0 12px #ff5722;
         }
 
         @keyframes blowFlicker {
@@ -363,7 +381,7 @@
             100% { transform: scale(1.15) rotate(3deg); }
         }
 
-        /* Canvas Overlay for Celebratory FX */
+        /* Canvas Overlay for Spectacular Fireworks */
         #fireworks-canvas {
             position: absolute;
             top: 0;
@@ -468,7 +486,6 @@
     </div>
 
     <script>
-        // Update code passcode sequence matching the video
         const REQUIRED_PASSCODE = "010101"; 
         let inputSequence = "";
 
@@ -522,80 +539,166 @@
             }, 1000);
         }
 
-        function extinguishCandles() {
-            document.querySelectorAll('.candle-flame').forEach(flame => flame.style.display = 'none');
-            document.getElementById('cake-heading').innerText = "🎉 Happy Birthday! 🎉";
-            initFireworks();
+        // Synthesize Happy Birthday music using Web Audio API
+        function playHappyBirthdayTune() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            const notes = [
+                { note: 'G4', dur: 0.4 }, { note: 'G4', dur: 0.4 }, { note: 'A4', dur: 0.8 }, { note: 'G4', dur: 0.8 }, { note: 'C5', dur: 0.8 }, { note: 'B4', dur: 1.2 },
+                { note: 'G4', dur: 0.4 }, { note: 'G4', dur: 0.4 }, { note: 'A4', dur: 0.8 }, { note: 'G4', dur: 0.8 }, { note: 'D5', dur: 0.8 }, { note: 'C5', dur: 1.2 },
+                { note: 'G4', dur: 0.4 }, { note: 'G4', dur: 0.4 }, { note: 'G5', dur: 0.8 }, { note: 'E5', dur: 0.8 }, { note: 'C5', dur: 0.8 }, { note: 'B4', dur: 0.8 }, { note: 'A4', dur: 0.8 },
+                { note: 'F5', dur: 0.4 }, { note: 'F5', dur: 0.4 }, { note: 'E5', dur: 0.8 }, { note: 'C5', dur: 0.8 }, { note: 'D5', dur: 0.8 }, { note: 'C5', dur: 1.6 }
+            ];
+
+            const freqs = {
+                'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99
+            };
+
+            let time = audioCtx.currentTime;
+
+            notes.forEach(n => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle'; // Smooth, retro-styled music sound
+                osc.frequency.setValueAtTime(freqs[n.note], time);
+                
+                gain.gain.setValueAtTime(0.3, time);
+                // Linear decay (fade out) at the end of each note
+                gain.gain.exponentialRampToValueAtTime(0.001, time + n.dur - 0.05);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(time);
+                osc.stop(time + n.dur);
+                
+                time += n.dur; // Schedule next note
+            });
         }
 
-        /* Particles/Fireworks Generation Simulation */
-        function initFireworks() {
+        function extinguishCandles() {
+            document.querySelectorAll('.candle-flame').forEach(flame => flame.style.display = 'none');
+            document.getElementById('screen-cake').classList.add('celebrating');
+            document.getElementById('cake-heading').innerText = "🥳 HAPPY BIRTHDAY! 🎉";
+            
+            playHappyBirthdayTune();
+            initAdvancedFireworks();
+        }
+
+        /* Highly Flashy & Explosive Fireworks Particle Engine */
+        function initAdvancedFireworks() {
             const canvas = document.getElementById('fireworks-canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
+            let fireworks = [];
             let particles = [];
             
+            // Firework Rocket Class
+            class Firework {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height;
+                    this.targetY = Math.random() * (canvas.height * 0.5) + 50;
+                    this.speed = Math.random() * 4 + 7;
+                    this.color = `hsl(${Math.random() * 360}, 100%, 65%)`;
+                }
+                update() {
+                    this.y -= this.speed;
+                    if (this.y <= this.targetY) {
+                        // Explode! Create a massive particle ring
+                        for (let i = 0; i < 70; i++) {
+                            particles.push(new Particle(this.x, this.y, this.color));
+                        }
+                        return false; // Remove rocket
+                    }
+                    return true;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            // Explosion Particle Class
             class Particle {
                 constructor(x, y, color) {
                     this.x = x;
                     this.y = y;
                     this.color = color;
-                    this.radius = Math.random() * 3 + 1;
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 6 + 2;
                     this.velocity = {
-                        x: (Math.random() - 0.5) * 8,
-                        y: (Math.random() - 0.5) * 8
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
                     };
                     this.alpha = 1;
+                    this.decay = Math.random() * 0.015 + 0.01;
+                    this.gravity = 0.06;
+                }
+                update() {
+                    this.velocity.y += this.gravity;
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.alpha -= this.decay;
+                    return this.alpha > 0;
                 }
                 draw() {
                     ctx.save();
                     ctx.globalAlpha = this.alpha;
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    // Glow effect
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                    ctx.arc(this.x, this.y, Math.random() * 2.5 + 1, 0, Math.PI * 2);
                     ctx.fillStyle = this.color;
                     ctx.fill();
                     ctx.restore();
                 }
-                update() {
-                    this.x += this.velocity.x;
-                    this.y += this.velocity.y;
-                    this.velocity.y += 0.05; // gravity emulation
-                    this.alpha -= 0.015;
-                }
             }
 
-            function spawnExplosion() {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * (canvas.height / 2) + 100;
-                const colors = ['#ff5252', '#ffeb3b', '#2196f3', '#e91e63', '#4caf50'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                for(let i=0; i<40; i++) {
-                    particles.push(new Particle(x, y, randomColor));
-                }
-            }
-
-            let explosionInterval = setInterval(spawnExplosion, 400);
+            // Spawn loop
+            let spawnInterval = setInterval(() => {
+                if(fireworks.length < 5) fireworks.push(new Firework());
+            }, 350);
 
             function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach((p, idx) => {
-                    if (p.alpha <= 0) {
-                        particles.splice(idx, 1);
-                    } else {
-                        p.update();
-                        p.draw();
-                    }
+                // Creates trailing effect seen in professional visual rendering
+                ctx.fillStyle = 'rgba(18, 3, 5, 0.15)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                fireworks = fireworks.filter(fw => {
+                    const alive = fw.update();
+                    if (alive) fw.draw();
+                    return alive;
                 });
+
+                particles = particles.filter(p => {
+                    const alive = p.update();
+                    if (alive) p.draw();
+                    return alive;
+                });
+
                 requestAnimationFrame(animate);
             }
             animate();
 
-            // Stop generation cycle after 6 seconds
-            setTimeout(() => clearInterval(explosionInterval), 6000);
+            // End generation after 12 seconds to keep performance optimal
+            setTimeout(() => clearInterval(spawnInterval), 12000);
         }
+
+        // Resize support for canvas
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('fireworks-canvas');
+            if(canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
     </script>
 </body>
 </html>
