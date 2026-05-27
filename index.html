@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Surprise</title>
+    <style>
+        :root {
+            --bg-color: #d63447;
+            --accent-color: #f57b51;
+            --cream-color: #f6eedf;
+            --dark-text: #4a1c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--cream-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- SCREEN 1: PASSCODE --- */
+        .polaroid {
+            background: white;
+            padding: 15px 15px 30px 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: rotate(-3deg);
+            margin-bottom: 30px;
+            width: 250px;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .polaroid .caption {
+            color: var(--dark-text);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+
+        .passcode-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .passcode-display {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            height: 40px;
+            color: white;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 200px;
+        }
+
+        .key {
+            background: white;
+            color: var(--dark-text);
+            border: none;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .key:active {
+            transform: scale(0.9);
+        }
+
+        /* --- SCREEN 2: LOADING --- */
+        .loader-container {
+            width: 80%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 4px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 15px;
+            background: white;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+
+        /* --- SCREEN 3: LETTER & PHOTOS --- */
+        .letter-container {
+            background: var(--cream-color);
+            color: var(--dark-text);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: left;
+            width: 100%;
+        }
+
+        .letter-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--bg-color);
+        }
+
+        .letter-container p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .photo-grid img {
+            width: 100%;
+            border-radius: 5px;
+            border: 3px solid white;
+        }
+
+        .btn {
+            margin-top: 25px;
+            background: var(--bg-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        /* --- SCREEN 4: CAKE & WISH --- */
+        .cake {
+            position: relative;
+            width: 150px;
+            height: 100px;
+            background: #f9d5bb;
+            border-radius: 10px 10px 0 0;
+            margin-top: 60px;
+            box-shadow: inset 0 10px 0 #f3b08a;
+        }
+
+        .cake::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: #bd574e;
+        }
+
+        .candle {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 30px;
+            background: #fff;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .flame {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 18px;
+            background: #ff9d00;
+            border-radius: 50% 50% 20% 20%;
+            animation: flicker 0.1s infinite alternate;
+            cursor: pointer;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.1) rotate(2deg); }
+        }
+
+        .hint {
+            margin-top: 30px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen-passcode" class="screen active">
+        <div class="polaroid">
+            <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500" alt="Birthday Girl">
+            <div class="caption">Happy Birthday, Bacha! ❤️</div>
+        </div>
+        
+        <div class="passcode-container">
+            <p style="margin-bottom: 10px;">Enter Passcode (Our Anniversary Date)</p>
+            <div class="passcode-display" id="passcode-display">____</div>
+            <div class="keypad">
+                <button class="key" onclick="pressKey('1')">1</button>
+                <button class="key" onclick="pressKey('2')">2</button>
+                <button class="key" onclick="pressKey('3')">3</button>
+                <button class="key" onclick="pressKey('4')">4</button>
+                <button class="key" onclick="pressKey('5')">5</button>
+                <button class="key" onclick="pressKey('6')">6</button>
+                <button class="key" onclick="pressKey('7')">7</button>
+                <button class="key" onclick="pressKey('8')">8</button>
+                <button class="key" onclick="pressKey('9')">9</button>
+                <button class="key" onclick="pressKey('0')">0</button>
+                <button class="key" style="grid-column: span 2; border-radius: 20px; width: 100%;" onclick="clearPasscode()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-loading" class="screen">
+        <h2>Yay! 🎉</h2>
+        <p style="margin-top: 10px;">Loading your birthday surprise...</p>
+        <div class="loader-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="screen-letter" class="screen">
+        <div class="letter-container">
+            <h2>Happy Birthday Bacha! 🥰</h2>
+            <p>Dear Bacha,</p>
+            <p>I hope this little gift brings a massive smile to your face. Thank you for being the most amazing person in my life and for filling every single day with love and joy.</p>
+            <p>Here's to celebrating you today, tomorrow, and always. I love you to the moon and back!</p>
+            
+            <div class="photo-grid">
+                <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=300" alt="Memory 1">
+                <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=300" alt="Memory 2">
+            </div>
+
+            <button class="btn" onclick="nextScreen('screen-cake')">Click to see your cake! 🎂</button>
+        </div>
+    </div>
+
+    <div id="screen-cake" class="screen">
+        <h2>✨ Make a Wish ✨</h2>
+        
+        <div class="cake">
+            <div class="candle">
+                <div class="flame" id="flame" onclick="blowCandle()"></div>
+            </div>
+        </div>
+
+        <p class="hint" id="cake-instruction">Tap the flame to blow out the candle!</p>
+    </div>
+
+    <script>
+        // Set your secret 4-digit passcode here
+        const CORRECT_PASSCODE = "1306"; 
+        let currentInput = "";
+
+        function pressKey(num) {
+            if (currentInput.length < 4) {
+                currentInput += num;
+                updateDisplay();
+            }
+            
+            if (currentInput.length === 4) {
+                if (currentInput === CORRECT_PASSCODE) {
+                    setTimeout(() => {
+                        nextScreen('screen-loading');
+                        startLoading();
+                    }, 300);
+                } else {
+                    alert("Wrong passcode! Hint: Check the date ❤️");
+                    clearPasscode();
+                }
+            }
+        }
+
+        function clearPasscode() {
+            currentInput = "";
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById('passcode-display');
+            display.innerText = currentInput.padEnd(4, '_');
+        }
+
+        function nextScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            // Show target screen
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startLoading() {
+            const bar = document.getElementById('progress-bar');
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        nextScreen('screen-letter');
+                    }, 500);
+                } else {
+                    width += 2;
+                    bar.style.width = width + '%';
+                }
+            }, 50); // Adjust loading speed here
+        }
+
+        function blowCandle() {
+            const flame = document.getElementById('flame');
+            const instruction = document.getElementById('cake-instruction');
+            
+            flame.style.display = 'none'; // Extinguish flame
+            instruction.innerHTML = "🎉 Happy Birthday! May all your wishes come true! 🎉";
+            
+            // Simple visual effect alert
+            setTimeout(() => {
+                alert("❤️ I Love You! ❤️");
+            }, 500);
+        }
+    </script>
+</body>
+</html>
